@@ -1,6 +1,8 @@
 package com.atguigu.mediaplayer.fragment;
 
+import android.graphics.Color;
 import android.view.View;
+import android.widget.TextView;
 
 import com.atguigu.mediaplayer.BaseFragment;
 
@@ -9,9 +11,21 @@ import com.atguigu.mediaplayer.BaseFragment;
  */
 
 public class LocalVideoFragment extends BaseFragment {
+
+    private TextView textView;
+
     @Override
     public View initView() {
-        return null;
+        textView = new TextView(context);
+        textView.setTextSize(20);
+        textView.setTextColor(Color.BLACK);
+        return textView;
     }
 
+    @Override
+    public void initData() {
+        super.initData();
+        textView.setText("本地视频");
+
+    }
 }
