@@ -15,7 +15,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity {
     private VideoView vv_player;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_system_video_player);
         vv_player = (VideoView) findViewById(R.id.vv_player);
