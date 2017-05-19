@@ -42,7 +42,6 @@ public class TitleBar extends LinearLayout implements View.OnClickListener {
         rl_game.setOnClickListener(this);
         ib_history.setOnClickListener(this);
 
-
     }
 
 
