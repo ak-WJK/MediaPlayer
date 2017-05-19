@@ -24,6 +24,11 @@
             android:launchMode="singleTask">
 
         </activity>
+        <activity
+            android:name=".player.SystemVideoPlayerActivity"
+            android:theme="@style/screenFull">
+
+        </activity>
     </application>
 
 </manifest>

@@ -16,6 +16,7 @@ import com.atguigu.mediaplayer.BaseFragment;
 import com.atguigu.mediaplayer.R;
 import com.atguigu.mediaplayer.adapter.LocalMediaAdapter;
 import com.atguigu.mediaplayer.domain.LocalMediaBean;
+import com.atguigu.mediaplayer.player.SystemVideoPlayerActivity;
 
 import java.util.ArrayList;
 
@@ -59,9 +60,17 @@ public class LocalVideoFragment extends BaseFragment {
 
             LocalMediaBean item = adapter.getItem(position);
 
-            Intent intent = new Intent();
+            //调用系统播发器播放视频
+//            Intent intent = new Intent();
+//            intent.setDataAndType(Uri.parse(item.getAddress()), "video/*");
+//            startActivity(intent);
+
+
+            Intent intent = new Intent(context,SystemVideoPlayerActivity.class);
             intent.setDataAndType(Uri.parse(item.getAddress()), "video/*");
             startActivity(intent);
+
+
 
 
         }
