@@ -26,6 +26,14 @@
             android:drawableTop="@drawable/local_video_select"
             android:text="本地视频" />
 
+
+
+        <RadioButton
+            android:id="@+id/rb_local_audio"
+            style="@style/rb_style"
+            android:drawableTop="@drawable/local_audio_select"
+            android:text="本地音频" />
+
         <RadioButton
 
             android:id="@+id/rb_net_video"
@@ -33,11 +41,6 @@
             android:drawableTop="@drawable/net_video_select"
             android:text="网络视频" />
 
-        <RadioButton
-            android:id="@+id/rb_local_audio"
-            style="@style/rb_style"
-            android:drawableTop="@drawable/local_audio_select"
-            android:text="本地音频" />
 
         <RadioButton
             android:id="@+id/rb_net_audio"

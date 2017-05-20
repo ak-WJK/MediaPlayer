@@ -62,10 +62,10 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.rb_local_video:
                     position = 0;
                     break;
-                case R.id.rb_net_video:
+                case R.id.rb_local_audio:
                     position = 1;
                     break;
-                case R.id.rb_local_audio:
+                case R.id.rb_net_video:
                     position = 2;
                     break;
                 case R.id.rb_net_audio:
