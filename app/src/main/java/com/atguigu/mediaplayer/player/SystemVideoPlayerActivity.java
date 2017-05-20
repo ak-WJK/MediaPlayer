@@ -271,7 +271,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 handler.sendEmptyMessage(PROGRESS);
 
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
-                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER,4000);
+                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
 
             }
         });
@@ -492,5 +492,12 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     public String getSystemTime() {
         SimpleDateFormat fromat = new SimpleDateFormat("HH:mm:ss");
         return fromat.format(new Date());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        unregisterReceiver(receiver);
     }
 }
