@@ -12,6 +12,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -41,7 +43,11 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private int position;
     private ArrayList<LocalMediaBean> mediaBeens;
     private Uri uri;
+    private GestureDetector detector;
+    private static final int HIDE_MEDIA_CONTROLLER = 2;
 
+    private boolean isShowControl;
+    private boolean isShowControlPlayer = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +66,70 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         playerStartListener();
         //设置电池电量变化的监听
         initData();
-
-
+        //seekBar拖动改变的监听
         sbVideoPragressControl.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
 
+        //定义手势识别器实现控制面板的隐藏和显示及视频的控制
+        detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
 
+
+            //长按的
+            @Override
+            public void onLongPress(MotionEvent e) {
+                super.onLongPress(e);
+                //播放和暂停
+                startAndPause();
+
+
+            }
+
+
+            //双击的
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                return super.onDoubleTap(e);
+
+
+            }
+
+            //单击的
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+
+                if (isShowControlPlayer) {
+                    hideControlPlayer();
+                    handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+                } else {
+                    showControlPlayer();
+                }
+                return true;
+            }
+        });
+
+
+    }
+
+
+    /**
+     * 显示控制面板
+     */
+    protected void showControlPlayer() {
+        rl_layout.setVisibility(View.VISIBLE);
+        isShowControlPlayer = true;
+    }
+
+    /**
+     * 隐藏控制面板
+     */
+    protected void hideControlPlayer() {
+        rl_layout.setVisibility(View.GONE);
+        isShowControlPlayer = false;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        detector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     private void setData() {
@@ -151,6 +216,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
 
                     break;
+                case HIDE_MEDIA_CONTROLLER:
+                    hideControlPlayer();
+                    break;
             }
 
         }
@@ -166,6 +234,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             //是否为为用户拖动
             if (fromUser) {
                 vv_player.seekTo(progress);
+
+                handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
             }
 
         }
@@ -198,6 +269,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 sbVideoPragressControl.setMax(duration);
 
                 handler.sendEmptyMessage(PROGRESS);
+
+                handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER,4000);
 
             }
         });
@@ -282,6 +356,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private ImageButton ibSwitchcontrol;
     private ImageButton ibNext;
     private ImageButton ibFullscreen;
+    private RelativeLayout rl_layout;
 
     /**
      * Find the Views in the layout<br />
@@ -290,6 +365,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
+        rl_layout = (RelativeLayout) findViewById(R.id.rl_layout);
         llVideoInfo = (RelativeLayout) findViewById(R.id.ll_video_info);
         tvVideoName = (TextView) findViewById(R.id.tv_video_name);
         ivBattery = (ImageView) findViewById(R.id.iv_battery);
@@ -336,22 +412,28 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             playPreVideo();
 
         } else if (v == ibSwitchcontrol) {
-            if (vv_player.isPlaying()) {
-
-                vv_player.pause();
-
-                ibSwitchcontrol.setBackgroundResource(R.drawable.media_switchcontrol2_select);
-
-            } else {
-                vv_player.start();
-                ibSwitchcontrol.setBackgroundResource(R.drawable.media_switchcontrol1_select);
-            }
+            startAndPause();
 
         } else if (v == ibNext) {
             playNextPlayer();
 
         } else if (v == ibFullscreen) {
             // Handle clicks for ibFullscreen
+        }
+        handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+    }
+
+    private void startAndPause() {
+        if (vv_player.isPlaying()) {
+
+            vv_player.pause();
+
+            ibSwitchcontrol.setBackgroundResource(R.drawable.media_switchcontrol2_select);
+
+        } else {
+            vv_player.start();
+            ibSwitchcontrol.setBackgroundResource(R.drawable.media_switchcontrol1_select);
         }
     }
 

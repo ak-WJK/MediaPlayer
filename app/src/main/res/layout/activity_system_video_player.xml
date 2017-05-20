@@ -3,13 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
-    android:gravity="center">
+    android:gravity="center"
+    >
 
 
     <VideoView
         android:id="@+id/vv_player"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true" />
 
     <include layout="@layout/custom_control_layout" />
 </RelativeLayout>
