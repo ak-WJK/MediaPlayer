@@ -1,8 +1,12 @@
 package com.atguigu.mediaplayer.player;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -28,6 +32,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private VideoView vv_player;
     private Utils utils;
     private int systemTime;
+    private BatteryReceiver receiver;
+    private int level;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +46,48 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
         //设置播放的三种状态的监听
         playerStartListener();
+        //设置电池电量变化的监听
+        initData();
 
+
+    }
+
+    private void initData() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        receiver = new BatteryReceiver();
+        registerReceiver(receiver, filter);
+    }
+
+    //电量广播的监听
+    class BatteryReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+//            leven = intent.getIntExtra("leven", 0);
+            level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            setBattery();
+        }
+    }
+
+    private void setBattery() {
+        if (level <= 0) {
+            ivBattery.setImageResource(R.drawable.ic_battery_0);
+        } else if (level > 0 && level <= 10) {
+            ivBattery.setImageResource(R.drawable.ic_battery_10);
+        } else if (level > 10 && level <= 20) {
+            ivBattery.setImageResource(R.drawable.ic_battery_20);
+        } else if (level > 20 && level <= 40) {
+            ivBattery.setImageResource(R.drawable.ic_battery_40);
+        } else if (level > 40 && level <= 60) {
+            ivBattery.setImageResource(R.drawable.ic_battery_60);
+        } else if (level > 60 && level <= 80) {
+            ivBattery.setImageResource(R.drawable.ic_battery_80);
+        } else if (level > 80 && level <= 100) {
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        } else {
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        }
 
     }
 
@@ -67,6 +114,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
                     removeMessages(PROGRESS);
                     sendEmptyMessageDelayed(PROGRESS, 0);
+
+
+                    //
 
                     break;
             }
@@ -100,7 +150,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
         }
     }
-
 
     private void playerStartListener() {
         vv_player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
