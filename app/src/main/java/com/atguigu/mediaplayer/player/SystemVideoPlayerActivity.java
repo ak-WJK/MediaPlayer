@@ -208,7 +208,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             @Override
             public void onCompletion(MediaPlayer mp) {
                 //自动播放下一条
-                setNextPlayer();
+                playNextPlayer();
 
             }
         });
@@ -230,7 +230,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     //设置自动播放下一条
-    private void setNextPlayer() {
+    private void playNextPlayer() {
         Log.e("TAG", "setNextPlayer");
         if (mediaBeens != null && mediaBeens.size() > 0) {
             position++;
@@ -246,8 +246,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     Toast.makeText(SystemVideoPlayerActivity.this, "最后一个视频", Toast.LENGTH_SHORT).show();
 
                     //设置下一个不可点击
-                    
                 }
+                setButtonStart();
+
 
             } else {
                 position = mediaBeens.size() - 1;
@@ -332,7 +333,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         } else if (v == ibBack) {
             finish();
         } else if (v == ibPre) {
-
+            playPreVideo();
 
         } else if (v == ibSwitchcontrol) {
             if (vv_player.isPlaying()) {
@@ -347,10 +348,62 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             }
 
         } else if (v == ibNext) {
-            // Handle clicks for ibNext
+            playNextPlayer();
+
         } else if (v == ibFullscreen) {
             // Handle clicks for ibFullscreen
         }
+    }
+
+    private void setPreOrNextVideo(boolean isEnable) {
+        ibPre.setEnabled(isEnable);
+        ibNext.setEnabled(isEnable);
+        if (isEnable) {
+            ibPre.setBackgroundResource(R.drawable.media_pre_control_select);
+            ibNext.setBackgroundResource(R.drawable.media_next_control_select);
+        } else {
+            ibPre.setBackgroundResource(R.drawable.btn_pre_gray);
+            ibNext.setBackgroundResource(R.drawable.btn_next_gray);
+        }
+
+
+    }
+
+    private void playPreVideo() {
+        if (mediaBeens != null && mediaBeens.size() > 0) {
+            position--;
+            if (position >= 0) {
+                LocalMediaBean localMediaBean = mediaBeens.get(position);
+                tvVideoName.setText(localMediaBean.getName());
+                vv_player.setVideoPath(localMediaBean.getAddress());
+
+                //设置按钮的状态
+                setButtonStart();
+
+            } else {
+                position = 0;
+            }
+        }
+
+
+    }
+
+    private void setButtonStart() {
+        if (mediaBeens != null && mediaBeens.size() > 0) {
+            setPreOrNextVideo(true);
+            if (position == 0) {
+                ibPre.setEnabled(false);
+                ibPre.setBackgroundResource(R.drawable.btn_pre_gray);
+            }
+            if (position == mediaBeens.size() - 1) {
+                ibNext.setEnabled(false);
+                ibNext.setBackgroundResource(R.drawable.btn_next_gray);
+            }
+
+
+        }
+
+
     }
 
     //得到系统时间
