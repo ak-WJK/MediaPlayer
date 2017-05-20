@@ -1,10 +1,12 @@
 package com.atguigu.mediaplayer.domain;
 
+import java.io.Serializable;
+
 /**
  * Created by Administrator on 2017/5/19.
  */
 
-public class LocalMediaBean {
+public class LocalMediaBean implements Serializable {
     private String name;
     private long duration;
     private long size;

@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -22,9 +23,11 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.atguigu.mediaplayer.R;
+import com.atguigu.mediaplayer.domain.LocalMediaBean;
 import com.atguigu.mediaplayer.utils.Utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
@@ -34,6 +37,11 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private int systemTime;
     private BatteryReceiver receiver;
     private int level;
+    //播放的视频的位置
+    private int position;
+    private ArrayList<LocalMediaBean> mediaBeens;
+    private Uri uri;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +52,38 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
         findViews();
 
+        //获取数据列表
+        getListDatas();
+        setData();
+
         //设置播放的三种状态的监听
         playerStartListener();
         //设置电池电量变化的监听
         initData();
+
+
+        sbVideoPragressControl.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
+
+
+    }
+
+    private void setData() {
+        if (mediaBeens != null && mediaBeens.size() > 0) {
+            //得到数据并设置视频名称及播放地址
+            LocalMediaBean localMediaBean = mediaBeens.get(position);
+            tvVideoName.setText(localMediaBean.getName());
+            vv_player.setVideoPath(localMediaBean.getAddress());
+        }
+
+
+    }
+
+    private void getListDatas() {
+        Intent intent = getIntent();
+        position = intent.getIntExtra("position", 0);
+        uri = intent.getData();
+
+        mediaBeens = (ArrayList<LocalMediaBean>) intent.getSerializableExtra("mediaBeens");
 
 
     }
@@ -110,13 +146,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     tvSystemTime.setText(getSystemTime());
 
 
-                    sbVideoPragressControl.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
-
                     removeMessages(PROGRESS);
                     sendEmptyMessageDelayed(PROGRESS, 0);
 
-
-                    //
 
                     break;
             }
@@ -152,6 +184,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     }
 
     private void playerStartListener() {
+
         vv_player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
@@ -170,12 +203,16 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         });
 
 
+        //当视频播放完成的时候回调
         vv_player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                finish();
+                //自动播放下一条
+                setNextPlayer();
+
             }
         });
+
 
         vv_player.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
@@ -185,11 +222,44 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             }
         });
 
-        Intent intent = getIntent();
-        Uri uri = intent.getData();
-        vv_player.setVideoURI(uri);
+//        Intent intent = getIntent();
+//        Uri uri = intent.getData();
+//        vv_player.setVideoURI(uri);
 //        //设置系统媒体控制器
 //        vv_player.setMediaController(new MediaController(this));
+    }
+
+    //设置自动播放下一条
+    private void setNextPlayer() {
+        Log.e("TAG", "setNextPlayer");
+        if (mediaBeens != null && mediaBeens.size() > 0) {
+            position++;
+            if (position < mediaBeens.size()) {
+                //得到视频名称并设置
+                LocalMediaBean bean = mediaBeens.get(position);
+                tvVideoName.setText(bean.getName());
+//
+//                //得到播放地址
+                vv_player.setVideoPath(bean.getAddress());
+
+                if (position == mediaBeens.size() - 1) {
+                    Toast.makeText(SystemVideoPlayerActivity.this, "最后一个视频", Toast.LENGTH_SHORT).show();
+
+                    //设置下一个不可点击
+                    
+                }
+
+            } else {
+                position = mediaBeens.size() - 1;
+                finish();
+            }
+
+
+        } else if (uri != null) {
+            finish();
+        }
+
+
     }
 
 
@@ -263,6 +333,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             finish();
         } else if (v == ibPre) {
 
+
         } else if (v == ibSwitchcontrol) {
             if (vv_player.isPlaying()) {
 
@@ -285,7 +356,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     //得到系统时间
     public String getSystemTime() {
         SimpleDateFormat fromat = new SimpleDateFormat("HH:mm:ss");
-
         return fromat.format(new Date());
     }
 }

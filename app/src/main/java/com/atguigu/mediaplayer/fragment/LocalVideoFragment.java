@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -66,9 +67,21 @@ public class LocalVideoFragment extends BaseFragment {
 //            startActivity(intent);
 
 
-            Intent intent = new Intent(context, SystemVideoPlayerActivity.class);
-            intent.setDataAndType(Uri.parse(item.getAddress()), "video/*");
-            startActivity(intent);
+//            Intent intent = new Intent(context, SystemVideoPlayerActivity.class);
+//            intent.setDataAndType(Uri.parse(item.getAddress()), "video/*");
+//            startActivity(intent);
+
+
+
+
+
+        //传递列表
+       Intent  intent = new Intent(context, SystemVideoPlayerActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("mediaBeens", mediaBeens);
+        intent.putExtras(bundle);
+        intent.putExtra("position", position);
+        startActivity(intent);
 
 
         }
@@ -87,8 +100,9 @@ public class LocalVideoFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
-
         getData();
+
+//
 
 
     }

@@ -77,6 +77,8 @@ public class LocalMediaAdapter extends BaseAdapter {
         viewHodler.tvName.setText(mediaBean.getName());
         viewHodler.tvSize.setText(Formatter.formatFileSize(context, mediaBean.getSize()));
 
+
+
         return convertView;
     }
 
