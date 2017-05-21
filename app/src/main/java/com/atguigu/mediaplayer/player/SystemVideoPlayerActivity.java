@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.BatteryManager;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -22,11 +24,11 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.atguigu.mediaplayer.R;
 import com.atguigu.mediaplayer.domain.LocalMediaBean;
 import com.atguigu.mediaplayer.utils.Utils;
+import com.atguigu.mediaplayer.view.VideoView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,6 +36,8 @@ import java.util.Date;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int PROGRESS = 1;
+    private static final int FULL_SCREEN = 3;
+    private static final int DEFUALT_SCREEN = 4;
     private VideoView vv_player;
     private Utils utils;
     private int systemTime;
@@ -48,6 +52,18 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     private boolean isShowControl;
     private boolean isShowControlPlayer = true;
+    private int screenHeight;
+    private int screenWidth;
+    private int videoWidth;
+    private int videoHeight;
+    private AudioManager am;
+    private int currentVoice;
+    private int maxVoice;
+    boolean isMute = false;
+    private float downY;
+    private float downX;
+    private int min;
+    private int volume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +103,14 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             //双击的
             @Override
             public boolean onDoubleTap(MotionEvent e) {
+                getScreenInfo();
+                if (isFullScreen) {
+                    //默认
+                    setVideoType(DEFUALT_SCREEN);
+                } else {
+                    //全屏
+                    setVideoType(FULL_SCREEN);
+                }
                 return super.onDoubleTap(e);
 
 
@@ -106,7 +130,71 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             }
         });
 
+        getScreenInfo();
 
+
+        sbVolumeControl.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                if (fromUser) {
+
+                    updateVolume(progress);
+                    handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+                    handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+                }
+
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        //得到音量
+        getVolume();
+
+        //关联最大音量
+        sbVolumeControl.setMax(maxVoice);
+        //设置当前音量进度
+        sbVolumeControl.setProgress(currentVoice);
+
+    }
+
+    private void getVolume() {
+        //得到当前音量及系统音量
+
+        am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        currentVoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        maxVoice = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    private void updateVolume(int progress) {
+        currentVoice = progress;
+        am.setStreamVolume(AudioManager.STREAM_MUSIC, currentVoice, 0);
+        sbVolumeControl.setProgress(currentVoice);
+
+        if (currentVoice <= 0) {
+            isMute = true;
+        } else {
+            isMute = false;
+        }
+
+
+    }
+
+    private void getScreenInfo() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        screenHeight = metrics.heightPixels;
+        screenWidth = metrics.widthPixels;
     }
 
 
@@ -126,10 +214,60 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         isShowControlPlayer = false;
     }
 
+    private float eventX;
+    private float eventY;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         detector.onTouchEvent(event);
-        return super.onTouchEvent(event);
+
+
+        switch (event.getAction()) {
+
+            case MotionEvent.ACTION_DOWN:
+
+
+                downY = event.getRawY();
+                downX = event.getRawX();
+
+//                volume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+                min = Math.min(screenHeight, screenWidth);
+
+//                eventX = downY;
+//                eventY = downX;
+
+                handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float moveY = event.getRawY();
+                float moveX = event.getRawX();
+                float distanceX = downX - moveX;
+                float distanceY = downY - moveY;
+
+                if (Math.abs(distanceY - distanceX) > 8) {
+                    if (downX > screenWidth / 2) {
+                        float tatio = (distanceY / screenHeight) * maxVoice;
+                        if (tatio != 0) {
+                            float resultVoice = Math.min(Math.max(currentVoice + tatio, 0), maxVoice);
+                            updateVolume((int) resultVoice);
+                        }
+
+                    }
+                }
+//                eventX = moveX;
+//                eventY = moveY;
+
+
+                break;
+            case MotionEvent.ACTION_UP:
+                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+
+                break;
+        }
+
+        return true;
     }
 
     private void setData() {
@@ -159,6 +297,52 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         receiver = new BatteryReceiver();
         registerReceiver(receiver, filter);
     }
+
+    private boolean isFullScreen = false;
+
+    public void setVideoType(int videoType) {
+        switch (videoType) {
+            case FULL_SCREEN:
+                isFullScreen = true;
+
+                ibFullscreen.setBackgroundResource(R.drawable.media_fullscreen2_control_select);
+
+                //设置视频画面的宽和高
+                vv_player.setVideoSize(screenWidth, screenHeight);
+
+                break;
+            case DEFUALT_SCREEN:
+                isFullScreen = false;
+
+                ibFullscreen.setBackgroundResource(R.drawable.media_fullscreen_control_select);
+
+                //视频原生的宽和高
+                int mVideoWidth = videoWidth;
+                int mVideoHeight = videoHeight;
+
+                //计算好的要显示的视频的宽和高
+                int width = screenWidth;
+                int height = screenHeight;
+
+                // for compatibility, we adjust size based on aspect ratio
+                if (mVideoWidth * height < width * mVideoHeight) {
+                    //Log.i("@@@", "image too wide, correcting");
+                    width = height * mVideoWidth / mVideoHeight;
+                } else if (mVideoWidth * height > width * mVideoHeight) {
+                    //Log.i("@@@", "image too tall, correcting");
+                    height = width * mVideoHeight / mVideoWidth;
+                }
+
+                vv_player.setVideoSize(width, height);
+                ibFullscreen.setBackgroundResource(R.drawable.media_fullscreen_control_select);
+                isFullScreen = false;
+
+                break;
+        }
+
+
+    }
+
 
     //电量广播的监听
     class BatteryReceiver extends BroadcastReceiver {
@@ -257,8 +441,13 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private void playerStartListener() {
 
         vv_player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+
             @Override
             public void onPrepared(MediaPlayer mp) {
+                //得到视频的宽和高
+                videoWidth = mp.getVideoWidth();
+                videoHeight = mp.getVideoHeight();
+
 
                 vv_player.start();
                 //得到视频的总时长
@@ -272,6 +461,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
                 handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+
+                //设置默认屏幕
+                setVideoType(DEFUALT_SCREEN);
 
             }
         });
@@ -392,6 +584,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         ibSwitchcontrol.setOnClickListener(this);
         ibNext.setOnClickListener(this);
         ibFullscreen.setOnClickListener(this);
+
+
     }
 
     /**
@@ -404,6 +598,10 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     public void onClick(View v) {
         if (v == ibVolune) {
             // Handle clicks for ibVolune
+            isMute = !isMute;
+
+            updateVoice(isMute);
+
         } else if (v == ivShera) {
             // Handle clicks for ivShera
         } else if (v == ibBack) {
@@ -417,11 +615,34 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         } else if (v == ibNext) {
             playNextPlayer();
 
-        } else if (v == ibFullscreen) {
-            // Handle clicks for ibFullscreen
+        } else {
+            if (v == ibFullscreen) {
+                getScreenInfo();
+                if (isFullScreen) {
+                    //默认
+                    setVideoType(DEFUALT_SCREEN);
+                } else {
+                    //全屏
+                    setVideoType(FULL_SCREEN);
+                }
+
+            }
         }
         handler.removeMessages(HIDE_MEDIA_CONTROLLER);
         handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+    }
+
+    private void updateVoice(boolean isMute) {
+        if (isMute) {
+            //静音的
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+            sbVolumeControl.setProgress(0);
+        } else {
+//非静音的
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, currentVoice, 0);
+            sbVolumeControl.setProgress(currentVoice);
+
+        }
     }
 
     private void startAndPause() {
@@ -466,7 +687,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 position = 0;
             }
         }
-
 
     }
 

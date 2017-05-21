@@ -49,7 +49,6 @@ public class LocalVideoFragment extends BaseFragment {
                 tv_hint.setVisibility(View.VISIBLE);
             }
 
-
         }
     };
 
