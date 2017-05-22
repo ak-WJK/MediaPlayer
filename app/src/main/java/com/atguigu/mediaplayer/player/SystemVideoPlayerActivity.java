@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
@@ -61,9 +62,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private int maxVoice;
     boolean isMute = false;
     private float downY;
-    private float downX;
-    private int min;
     private int volume;
+    private int min;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,18 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         utils = new Utils();
 
         findViews();
+
+        //定义手势识别器实现控制面板的隐藏和显示及视频的控制
+        getGesture();
+
+        //得到音量
+        getVolume();
+
+        //关联最大音量
+        sbVolumeControl.setMax(maxVoice);
+        //设置当前音量进度
+        sbVolumeControl.setProgress(currentVoice);
+
 
         //获取数据列表
         getListDatas();
@@ -85,6 +98,10 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         //seekBar拖动改变的监听
         sbVideoPragressControl.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
 
+
+    }
+
+    private void getGesture() {
         //定义手势识别器实现控制面板的隐藏和显示及视频的控制
         detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
 
@@ -157,15 +174,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
             }
         });
-
-        //得到音量
-        getVolume();
-
-        //关联最大音量
-        sbVolumeControl.setMax(maxVoice);
-        //设置当前音量进度
-        sbVolumeControl.setProgress(currentVoice);
-
     }
 
     private void getVolume() {
@@ -214,8 +222,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         isShowControlPlayer = false;
     }
 
-    private float eventX;
-    private float eventY;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -225,39 +231,27 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         switch (event.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
-
-
-                downY = event.getRawY();
-                downX = event.getRawX();
-
-//                volume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-
+                downY = event.getY();
+                //得到当前声音
+                volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+                //得到最小值
                 min = Math.min(screenHeight, screenWidth);
-
-//                eventX = downY;
-//                eventY = downX;
 
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
 
                 break;
             case MotionEvent.ACTION_MOVE:
-                float moveY = event.getRawY();
-                float moveX = event.getRawX();
-                float distanceX = downX - moveX;
+                float moveY = event.getY();
                 float distanceY = downY - moveY;
+                //  得到滑动了多少声音 =   滑动距离/屏幕距离 * 最大声音值;
+                float delta = (distanceY / min) * maxVoice;
 
-                if (Math.abs(distanceY - distanceX) > 8) {
-                    if (downX > screenWidth / 2) {
-                        float tatio = (distanceY / screenHeight) * maxVoice;
-                        if (tatio != 0) {
-                            float resultVoice = Math.min(Math.max(currentVoice + tatio, 0), maxVoice);
-                            updateVolume((int) resultVoice);
-                        }
-
-                    }
+                if (delta != 0) {
+                    //当前声音
+                    int mVolume = (int) Math.min(Math.max(delta + volume, 0), maxVoice);
+                    //更新声音
+                    updateVolume(mVolume);
                 }
-//                eventX = moveX;
-//                eventY = moveY;
 
 
                 break;
@@ -268,6 +262,30 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         }
 
         return true;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            currentVoice--;
+            updateVolume(currentVoice);
+
+
+            handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            currentVoice++;
+            updateVolume(currentVoice);
+
+
+            handler.removeMessages(HIDE_MEDIA_CONTROLLER);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
+
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void setData() {
