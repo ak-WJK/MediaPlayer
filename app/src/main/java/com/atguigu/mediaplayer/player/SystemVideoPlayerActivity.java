@@ -75,6 +75,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
         findViews();
 
+        //获取数据列表
+        getListDatas();
+
         //定义手势识别器实现控制面板的隐藏和显示及视频的控制
         getGesture();
 
@@ -87,8 +90,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         sbVolumeControl.setProgress(currentVoice);
 
 
-        //获取数据列表
-        getListDatas();
         setData();
 
         //设置播放的三种状态的监听
@@ -288,21 +289,41 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         return super.onKeyDown(keyCode, event);
     }
 
+    private boolean isNetUri;
+
     private void setData() {
+
         if (mediaBeens != null && mediaBeens.size() > 0) {
             //得到数据并设置视频名称及播放地址
             LocalMediaBean localMediaBean = mediaBeens.get(position);
             tvVideoName.setText(localMediaBean.getName());
             vv_player.setVideoPath(localMediaBean.getAddress());
-        }
+            //本地地址
+            isNetUri = Utils.isNetUri(localMediaBean.getAddress());
 
+
+        } else if (uri != null) {
+            //播放外界传入的地址的视频(点击视频调用自己播放器)
+            vv_player.setVideoURI(uri);
+            tvVideoName.setText(uri.toString());
+            //网络地址
+            isNetUri = Utils.isNetUri(uri.toString());
+
+        }
+        setButtonStart();
 
     }
 
     private void getListDatas() {
         Intent intent = getIntent();
+
+        //获取从外界获取到的播放地址
+//        uri = intent.getData();
+        uri = getIntent().getData();
+
+//        Log.e("TAG", "uri" + uri.toString());
+
         position = intent.getIntExtra("position", 0);
-        uri = intent.getData();
 
         mediaBeens = (ArrayList<LocalMediaBean>) intent.getSerializableExtra("mediaBeens");
 
@@ -411,6 +432,22 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                     tvVideoTime.setText(utils.stringForTime(currentPosition));
                     //得到系统时间
                     tvSystemTime.setText(getSystemTime());
+
+                    //如果是网络视频就缓存
+                    if (isNetUri) {
+
+                        //得到缓冲的百分比
+                        int bufferPercentage = vv_player.getBufferPercentage();//0-100;
+
+                        //要缓存的长度
+                        int totalBuffer = bufferPercentage * sbVideoPragressControl.getMax();
+
+                        int secondaryProgress = totalBuffer / 100;
+                        sbVideoPragressControl.setSecondaryProgress(secondaryProgress);
+
+                    } else {
+                        sbVideoPragressControl.setSecondaryProgress(0);
+                    }
 
 
                     removeMessages(PROGRESS);
@@ -521,27 +558,24 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             if (position < mediaBeens.size()) {
                 //得到视频名称并设置
                 LocalMediaBean bean = mediaBeens.get(position);
+
+                //得到地址
+                isNetUri = Utils.isNetUri(bean.getAddress());
+
                 tvVideoName.setText(bean.getName());
-//
-//                //得到播放地址
+
+                //设置播放地址
                 vv_player.setVideoPath(bean.getAddress());
 
-                if (position == mediaBeens.size() - 1) {
-                    Toast.makeText(SystemVideoPlayerActivity.this, "最后一个视频", Toast.LENGTH_SHORT).show();
-
-                    //设置下一个不可点击
-                }
+                //设置按钮状态
                 setButtonStart();
 
 
             } else {
-                position = mediaBeens.size() - 1;
                 finish();
             }
 
 
-        } else if (uri != null) {
-            finish();
         }
 
 
@@ -692,9 +726,14 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     private void playPreVideo() {
         if (mediaBeens != null && mediaBeens.size() > 0) {
+
+
             position--;
             if (position >= 0) {
                 LocalMediaBean localMediaBean = mediaBeens.get(position);
+                //得到地址
+                isNetUri = Utils.isNetUri(localMediaBean.getAddress());
+
                 tvVideoName.setText(localMediaBean.getName());
                 vv_player.setVideoPath(localMediaBean.getAddress());
 
