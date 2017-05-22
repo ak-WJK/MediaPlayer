@@ -38,6 +38,11 @@ import java.util.Date;
 import io.vov.vitamio.Vitamio;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private LinearLayout ll_videobuffer;
+    private LinearLayout ll_videobuffer2;
+
+
     private static final int PROGRESS = 1;
     private static final int FULL_SCREEN = 3;
     private static final int DEFUALT_SCREEN = 4;
@@ -314,9 +319,9 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             tvVideoName.setText(uri.toString());
             //网络地址
             isNetUri = Utils.isNetUri(uri.toString());
-
+            setButtonStart();
         }
-        setButtonStart();
+
 
     }
 
@@ -421,7 +426,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     }
 
-
+    private int preCurrentPosition;
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -453,6 +458,20 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
                     } else {
                         sbVideoPragressControl.setSecondaryProgress(0);
+                    }
+
+
+                    if (isNetUri && vv_player.isPlaying()) {
+                        int duration = currentPosition - preCurrentPosition;
+                        if (duration < 500) {
+                            ll_videobuffer2.setVisibility(View.GONE);
+
+                        } else {
+                            ll_videobuffer2.setVisibility(View.VISIBLE);
+                        }
+
+                        preCurrentPosition = currentPosition;
+
                     }
 
 
@@ -505,6 +524,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
             @Override
             public void onPrepared(MediaPlayer mp) {
+                ll_videobuffer.setVisibility(View.GONE);
                 //得到视频的宽和高
                 videoWidth = mp.getVideoWidth();
                 videoHeight = mp.getVideoHeight();
@@ -525,6 +545,15 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
                 //设置默认屏幕
                 setVideoType(DEFUALT_SCREEN);
+
+
+                if (vv_player.isPlaying()) {
+                    ibSwitchcontrol.setBackgroundResource(R.drawable.media_switchcontrol1_select);
+                } else {
+                    ibSwitchcontrol.setBackgroundResource(R.drawable.media_switchcontrol2_select);
+
+                }
+
 
             }
         });
@@ -594,7 +623,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
                 //得到地址
                 isNetUri = Utils.isNetUri(bean.getAddress());
-
+                ll_videobuffer.setVisibility(View.VISIBLE);
                 tvVideoName.setText(bean.getName());
 
                 //设置播放地址
@@ -643,7 +672,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      */
     private void findViews() {
 
-
+        ll_videobuffer = (LinearLayout) findViewById(R.id.ll_videobuffer);
+        ll_videobuffer2 = (LinearLayout) findViewById(R.id.ll_videobuffer2);
         rl_layout = (RelativeLayout) findViewById(R.id.rl_layout);
         llVideoInfo = (RelativeLayout) findViewById(R.id.ll_video_info);
         tvVideoName = (TextView) findViewById(R.id.tv_video_name);
@@ -769,6 +799,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 //得到地址
                 isNetUri = Utils.isNetUri(localMediaBean.getAddress());
 
+                ll_videobuffer.setVisibility(View.VISIBLE);
+
                 tvVideoName.setText(localMediaBean.getName());
                 vv_player.setVideoPath(localMediaBean.getAddress());
 
@@ -795,6 +827,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             }
 
 
+        } else if (uri != null) {
+            setPreOrNextVideo(false);
         }
 
 

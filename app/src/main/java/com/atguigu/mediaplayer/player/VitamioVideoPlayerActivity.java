@@ -40,6 +40,9 @@ import io.vov.vitamio.MediaPlayer.OnErrorListener;
 
 
 public class VitamioVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
+    private LinearLayout ll_videobuffer;
+    private LinearLayout ll_videobuffer2;
+
     private static final int PROGRESS = 1;
     private static final int FULL_SCREEN = 3;
     private static final int DEFUALT_SCREEN = 4;
@@ -419,6 +422,7 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
 
     }
 
+    private int preCurrentPosition;
 
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
@@ -451,6 +455,20 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
 
                     } else {
                         sbVideoPragressControl.setSecondaryProgress(0);
+                    }
+
+
+                    if (isNetUri && vv_player.isPlaying()) {
+                        int duration = currentPosition - preCurrentPosition;
+                        if (duration < 500) {
+                            ll_videobuffer2.setVisibility(View.GONE);
+
+                        } else {
+                            ll_videobuffer2.setVisibility(View.VISIBLE);
+                        }
+
+                        preCurrentPosition = currentPosition;
+
                     }
 
 
@@ -516,6 +534,8 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
                 //设置seekBar的最大长度为对应的视频的总长度
                 sbVideoPragressControl.setMax(duration);
 
+                ll_videobuffer.setVisibility(View.GONE);
+
                 handler.sendEmptyMessage(PROGRESS);
 
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
@@ -562,6 +582,7 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
             if (position < mediaBeens.size()) {
                 //得到视频名称并设置
                 LocalMediaBean bean = mediaBeens.get(position);
+                ll_videobuffer.setVisibility(View.VISIBLE);
 
                 //得到地址
                 isNetUri = Utils.isNetUri(bean.getAddress());
@@ -613,6 +634,10 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
+
+        ll_videobuffer = (LinearLayout) findViewById(R.id.ll_videobuffer);
+        ll_videobuffer2 = (LinearLayout) findViewById(R.id.ll_videobuffer2);
+
         rl_layout = (RelativeLayout) findViewById(R.id.rl_layout);
         llVideoInfo = (RelativeLayout) findViewById(R.id.ll_video_info);
         tvVideoName = (TextView) findViewById(R.id.tv_video_name);
@@ -737,7 +762,7 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
                 LocalMediaBean localMediaBean = mediaBeens.get(position);
                 //得到地址
                 isNetUri = Utils.isNetUri(localMediaBean.getAddress());
-
+                ll_videobuffer.setVisibility(View.VISIBLE);
                 tvVideoName.setText(localMediaBean.getName());
                 vv_player.setVideoPath(localMediaBean.getAddress());
 
