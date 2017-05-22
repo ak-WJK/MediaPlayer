@@ -40,6 +40,7 @@ import io.vov.vitamio.MediaPlayer.OnErrorListener;
 
 
 public class VitamioVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final int SHOW_NET_SPEED = 5;
     private LinearLayout ll_videobuffer;
     private LinearLayout ll_videobuffer2;
 
@@ -79,6 +80,9 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
         setContentView(R.layout.activity_vitamio_video_player);
         vv_player = (VitamioVideoView) findViewById(R.id.vv_player);
         utils = new Utils();
+
+        //发消息开始显示网速
+        handler.sendEmptyMessage(SHOW_NET_SPEED);
 
         findViews();
 
@@ -428,6 +432,17 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
         public void handleMessage(Message msg) {
             switch (msg.what) {
 
+                case SHOW_NET_SPEED:
+                    if (isNetUri) {
+                        String netSpeed = utils.getNetSpeed(VitamioVideoPlayerActivity.this);
+                        tv_loading_net_speed.setText("正在加载中...." + netSpeed);
+                        tv_net_speed.setText("正在缓冲...." + netSpeed);
+
+                        sendEmptyMessageDelayed(SHOW_NET_SPEED, 1000);
+                    }
+
+                    break;
+
                 case PROGRESS:
 
                     //得到播放时的每一小段时间
@@ -626,6 +641,8 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
     private ImageButton ibNext;
     private ImageButton ibFullscreen;
     private RelativeLayout rl_layout;
+    private TextView tv_loading_net_speed;
+    private TextView tv_net_speed;
 
     /**
      * Find the Views in the layout<br />
@@ -634,6 +651,9 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
+
+        tv_loading_net_speed = (TextView) findViewById(R.id.tv_loading_net_speed);
+        tv_net_speed = (TextView) findViewById(R.id.tv_net_speed);
 
         ll_videobuffer = (LinearLayout) findViewById(R.id.ll_videobuffer);
         ll_videobuffer2 = (LinearLayout) findViewById(R.id.ll_videobuffer2);

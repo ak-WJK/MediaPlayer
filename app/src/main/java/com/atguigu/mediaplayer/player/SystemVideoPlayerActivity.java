@@ -39,6 +39,7 @@ import io.vov.vitamio.Vitamio;
 
 public class SystemVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final int SHOW_NET_SPEED = 5;
     private LinearLayout ll_videobuffer;
     private LinearLayout ll_videobuffer2;
 
@@ -483,6 +484,16 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
                 case HIDE_MEDIA_CONTROLLER:
                     hideControlPlayer();
                     break;
+                case SHOW_NET_SPEED:
+                    if (isNetUri) {
+                        String netSpeed = utils.getNetSpeed(SystemVideoPlayerActivity.this);
+                        tv_loading_net_speed.setText("正在加载中...." + netSpeed);
+                        tv_net_speed.setText("正在缓冲...." + netSpeed);
+
+                        sendEmptyMessageDelayed(SHOW_NET_SPEED, 1000);
+                    }
+
+                    break;
             }
 
         }
@@ -643,6 +654,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
     }
 
+    private TextView tv_loading_net_speed;
+    private TextView tv_net_speed;
 
     private RelativeLayout llVideoInfo;
     private TextView tvVideoName;
@@ -671,7 +684,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
-
+        tv_loading_net_speed = (TextView) findViewById(R.id.tv_loading_net_speed);
+        tv_net_speed = (TextView) findViewById(R.id.tv_net_speed);
         ll_videobuffer = (LinearLayout) findViewById(R.id.ll_videobuffer);
         ll_videobuffer2 = (LinearLayout) findViewById(R.id.ll_videobuffer2);
         rl_layout = (RelativeLayout) findViewById(R.id.rl_layout);
@@ -702,7 +716,8 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         ibNext.setOnClickListener(this);
         ibFullscreen.setOnClickListener(this);
 
-
+        //发消息开始显示网速
+        handler.sendEmptyMessage(SHOW_NET_SPEED);
     }
 
     /**
