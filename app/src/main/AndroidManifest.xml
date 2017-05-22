@@ -37,7 +37,7 @@
         <activity
             android:name=".player.SystemVideoPlayerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:theme="@style/screenFull">
+            android:theme="@style/noAnimation_Theme">
 
 
             <intent-filter>
@@ -290,7 +290,8 @@
         <activity
             android:name=".player.VitamioVideoPlayerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:theme="@style/screenFull">
+            android:launchMode="singleTask"
+            android:theme="@style/noAnimation_Theme">
 
         </activity>
 

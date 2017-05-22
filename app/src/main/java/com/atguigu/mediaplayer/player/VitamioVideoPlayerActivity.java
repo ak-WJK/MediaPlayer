@@ -1,7 +1,9 @@
 package com.atguigu.mediaplayer.player;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
@@ -578,6 +580,9 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 Toast.makeText(VitamioVideoPlayerActivity.this, "视频播放出错", Toast.LENGTH_SHORT).show();
+                showErrorDialog();
+
+
                 return false;
             }
         });
@@ -587,6 +592,21 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
 //        vv_player.setVideoURI(uri);
 //        //设置系统媒体控制器
 //        vv_player.setMediaController(new MediaController(this));
+    }
+
+    private void showErrorDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("视频播放出错")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .show();
+
+
     }
 
     //设置自动播放下一条

@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
         //调用系统播放器播放视频
         Intent intent = new Intent();
-        intent.setDataAndType(Uri.parse("http://vfx.mtime.cn/Video/2017/05/17/mp4/170517091619822234.mp4"), "video/*");
+        intent.setDataAndType(Uri.parse("http://vfx.mtime.cn/Video/2017/05/17/mp4/1705170916198222341.mp4"), "video/*");
         startActivity(intent);
 
     }
