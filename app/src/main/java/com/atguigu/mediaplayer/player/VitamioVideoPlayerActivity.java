@@ -83,13 +83,14 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
         vv_player = (VitamioVideoView) findViewById(R.id.vv_player);
         utils = new Utils();
 
+
+        findViews();
         //发消息开始显示网速
         handler.sendEmptyMessage(SHOW_NET_SPEED);
 
-        findViews();
-
         //获取数据列表
         getListDatas();
+        setData();
 
         //定义手势识别器实现控制面板的隐藏和显示及视频的控制
         getGesture();
@@ -102,8 +103,6 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
         //设置当前音量进度
         sbVolumeControl.setProgress(currentVoice);
 
-
-        setData();
 
         //设置播放的三种状态的监听
         playerStartListener();
@@ -340,6 +339,7 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
 
         mediaBeens = (ArrayList<LocalMediaBean>) intent.getSerializableExtra("mediaBeens");
 
+//        Log.e("TAG", "mediaBeans" + mediaBeens.size());
 
     }
 
@@ -617,11 +617,11 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
             if (position < mediaBeens.size()) {
                 //得到视频名称并设置
                 LocalMediaBean bean = mediaBeens.get(position);
-                ll_videobuffer.setVisibility(View.VISIBLE);
+
 
                 //得到地址
                 isNetUri = Utils.isNetUri(bean.getAddress());
-
+                ll_videobuffer.setVisibility(View.VISIBLE);
                 tvVideoName.setText(bean.getName());
 
                 //设置播放地址
@@ -724,7 +724,7 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
             updateVoice(isMute);
 
         } else if (v == ivShera) {
-            // Handle clicks for ivShera
+            switchPlayer();
         } else if (v == ibBack) {
             finish();
         } else if (v == ibPre) {
@@ -752,6 +752,39 @@ public class VitamioVideoPlayerActivity extends AppCompatActivity implements Vie
         handler.removeMessages(HIDE_MEDIA_CONTROLLER);
         handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
     }
+
+
+    private void switchPlayer() {
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("如果当前为万能播放器播放，当播放有色块，播放质量不好，请切换到系统播放器播放")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startSystemPlayer();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    private void startSystemPlayer() {
+        if (vv_player != null) {
+            vv_player.stopPlayback();
+        }
+        Intent intent = new Intent(this, SystemVideoPlayerActivity.class);
+        if (mediaBeens != null && mediaBeens.size() > 0) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("mediaBeens", mediaBeens);
+            intent.putExtras(bundle);
+            intent.putExtra("position", position);
+        } else if (uri != null) {
+            intent.setData(uri);
+        }
+        startActivity(intent);
+        finish();//关闭万能播放器
+    }
+
 
     private void updateVoice(boolean isMute) {
         if (isMute) {

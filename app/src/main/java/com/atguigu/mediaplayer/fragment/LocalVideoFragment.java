@@ -71,16 +71,13 @@ public class LocalVideoFragment extends BaseFragment {
 //            startActivity(intent);
 
 
-
-
-
-        //传递列表
-       Intent  intent = new Intent(context, SystemVideoPlayerActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("mediaBeens", mediaBeens);
-        intent.putExtras(bundle);
-        intent.putExtra("position", position);
-        startActivity(intent);
+            //传递列表
+            Intent intent = new Intent(context, SystemVideoPlayerActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("mediaBeens", mediaBeens);
+            intent.putExtras(bundle);
+            intent.putExtra("position", position);
+            startActivity(intent);
 
 
         }

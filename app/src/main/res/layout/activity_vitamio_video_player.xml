@@ -24,6 +24,7 @@
         android:layout_centerInParent="true"
         android:background="@drawable/bg_player_loading_background"
         android:gravity="center"
+        android:visibility="gone"
         android:orientation="vertical">
 
         <ProgressBar

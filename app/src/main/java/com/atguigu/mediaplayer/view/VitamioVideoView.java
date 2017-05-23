@@ -8,7 +8,7 @@ import android.view.ViewGroup;
  * Created by Administrator on 2017/5/21.
  */
 
-public class VitamioVideoView extends io.vov.vitamio.widget.VideoView {
+public class VitamioVideoView extends  io.vov.vitamio.widget.VideoView {
 
     public VitamioVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);

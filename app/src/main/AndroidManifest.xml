@@ -15,6 +15,7 @@
 
 
     <application
+        android:name=".app.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/login_icon"
         android:label="@string/app_name"
@@ -294,6 +295,7 @@
             android:theme="@style/noAnimation_Theme">
 
         </activity>
+
 
     </application>
 

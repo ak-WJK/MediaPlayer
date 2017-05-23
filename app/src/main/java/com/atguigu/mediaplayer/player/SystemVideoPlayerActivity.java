@@ -1,7 +1,9 @@
 package com.atguigu.mediaplayer.player;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
@@ -604,24 +606,6 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 //        vv_player.setMediaController(new MediaController(this));
     }
 
-    private void startVitamioPlayer() {
-        if (vv_player != null) {
-            vv_player.stopPlayback();
-        }
-        Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
-        if (mediaBeens != null && mediaBeens.size() > 0) {
-            Bundle bunlder = new Bundle();
-            bunlder.putSerializable("videolist", mediaBeens);
-            intent.putExtra("position", position);
-            //放入Bundler
-            intent.putExtras(bunlder);
-        } else if (uri != null) {
-            intent.setData(uri);
-        }
-        startActivity(intent);
-        finish();//关闭系统播放器
-
-    }
 
     //设置自动播放下一条
     private void playNextPlayer() {
@@ -735,7 +719,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             updateVoice(isMute);
 
         } else if (v == ivShera) {
-            // Handle clicks for ivShera
+            switchPlayer();
         } else if (v == ibBack) {
             finish();
         } else if (v == ibPre) {
@@ -763,6 +747,43 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
         handler.removeMessages(HIDE_MEDIA_CONTROLLER);
         handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTROLLER, 4000);
     }
+
+    private void switchPlayer() {
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("当前使用系统播放器播放，当播放有声音没有画面，请切换到万能播放器播放")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startVitamioPlayer();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    private void startVitamioPlayer() {
+
+        if (vv_player != null) {
+            vv_player.stopPlayback();
+        }
+        Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
+        Log.e("TAG", "VitamioVideoPlayerActivity");
+        if (mediaBeens != null && mediaBeens.size() > 0) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("mediaBeens", mediaBeens);
+
+            Log.e("TAG", "mediaBeans" + mediaBeens.size());
+
+            intent.putExtras(bundle);
+            intent.putExtra("position", position);
+        } else if (uri != null) {
+            intent.setData(uri);
+        }
+        startActivity(intent);
+        finish();//关闭系统播放器
+    }
+
 
     private void updateVoice(boolean isMute) {
         if (isMute) {
