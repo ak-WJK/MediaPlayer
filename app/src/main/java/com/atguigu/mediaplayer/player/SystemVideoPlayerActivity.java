@@ -1,7 +1,9 @@
 package com.atguigu.mediaplayer.player;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +15,7 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -20,6 +23,7 @@ import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -74,18 +78,24 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
     private float downY;
     private int volume;
     private int min;
+    private float downX;
+    private int brightness;
+    private int mBtightness;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_system_video_player);
+        //得到屏幕亮度
+        brightness = getScreenBrightness(this);
 
         //初始化解码器
         Vitamio.isInitialized(getApplicationContext());
 
         vv_player = (VideoView) findViewById(R.id.vv_player);
         utils = new Utils();
+
 
         findViews();
 
@@ -196,6 +206,10 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
         am = (AudioManager) getSystemService(AUDIO_SERVICE);
         currentVoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        Log.e("TAG", "currentVoice" + currentVoice);
+
+
         maxVoice = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
     }
 
@@ -247,10 +261,16 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
             case MotionEvent.ACTION_DOWN:
                 downY = event.getY();
+                downX = event.getX();
+
                 //得到当前声音
                 volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+//                Log.e("TAG", "volume" + volume);
+
                 //得到最小值
                 min = Math.min(screenHeight, screenWidth);
+
 
                 handler.removeMessages(HIDE_MEDIA_CONTROLLER);
 
@@ -258,14 +278,39 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
             case MotionEvent.ACTION_MOVE:
                 float moveY = event.getY();
                 float distanceY = downY - moveY;
-                //  得到滑动了多少声音 =   滑动距离/屏幕距离 * 最大声音值;
-                float delta = (distanceY / min) * maxVoice;
 
-                if (delta != 0) {
-                    //当前声音
-                    int mVolume = (int) Math.min(Math.max(delta + volume, 0), maxVoice);
-                    //更新声音
-                    updateVolume(mVolume);
+                int max = Math.max(screenHeight, screenWidth);
+                if ((max / 2) < downX) {
+
+                    //  得到滑动了多少声音 =   滑动距离/屏幕距离 * 最大声音值;
+                    float delta = (distanceY / min) * maxVoice;
+//                    Log.e("TAG", "delta" + delta);
+                    if (delta != 0) {
+                        //当前声音
+                        int mVolume = (int) Math.min(Math.max(delta + volume, 0), maxVoice);
+
+//                        Log.e("TAG", "mVolume" + mVolume);
+
+                        //更新声音
+                        updateVolume(mVolume);
+                    }
+
+                }
+                if ((max / 2) > downX) {
+
+
+                    float delta = (distanceY / min) * 255;
+
+                    if (delta != 0) {
+
+                        mBtightness = (int) Math.min(Math.max(delta + brightness, 0), 255);
+
+                        setScreenBrightness(SystemVideoPlayerActivity.this, (int) mBtightness);
+
+                    }
+                    brightness = mBtightness;
+
+                    downY = moveY;
                 }
 
 
@@ -537,6 +582,7 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 
             @Override
             public void onPrepared(MediaPlayer mp) {
+
                 ll_videobuffer.setVisibility(View.GONE);
                 //得到视频的宽和高
                 videoWidth = mp.getVideoWidth();
@@ -604,6 +650,29 @@ public class SystemVideoPlayerActivity extends AppCompatActivity implements View
 //        vv_player.setVideoURI(uri);
 //        //设置系统媒体控制器
 //        vv_player.setMediaController(new MediaController(this));
+    }
+
+
+    // 获取屏幕的亮度
+    public static int getScreenBrightness(Context context) {
+        int value = 0;
+        ContentResolver cr = context.getContentResolver();
+
+        try {
+            value = Settings.System.getInt(cr, Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return value;
+    }
+
+
+    // 设置屏幕亮度：
+    public static void setScreenBrightness(Activity activity, int value) {
+        WindowManager.LayoutParams params = activity.getWindow().getAttributes();
+        params.screenBrightness = value / 255f;
+        activity.getWindow().setAttributes(params);
     }
 
 

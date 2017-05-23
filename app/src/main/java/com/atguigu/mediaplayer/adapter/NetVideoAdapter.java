@@ -1,7 +1,6 @@
 package com.atguigu.mediaplayer.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -45,7 +44,7 @@ public class NetVideoAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        Log.e("TAG", "getCount" + datas.size());
+
         return datas.size();
     }
 
