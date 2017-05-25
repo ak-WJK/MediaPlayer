@@ -12,6 +12,36 @@ public class LocalMediaBean implements Serializable {
     private long size;
     private String address;
 
+    @Override
+    public String toString() {
+        return "LocalMediaBean{" +
+                "name='" + name + '\'' +
+                ", duration=" + duration +
+                ", size=" + size +
+                ", address='" + address + '\'' +
+                ", artist='" + artist + '\'' +
+                '}';
+    }
+
+    public LocalMediaBean(String name, long duration, long size, String address, String artist) {
+        this.name = name;
+        this.duration = duration;
+        this.size = size;
+        this.address = address;
+        this.artist = artist;
+    }
+
+    public String getArtist() {
+
+        return artist;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
+    }
+
+    private String artist;
+
     public LocalMediaBean() {
     }
 
@@ -54,13 +84,4 @@ public class LocalMediaBean implements Serializable {
         this.address = address;
     }
 
-    @Override
-    public String toString() {
-        return "LocalMediaBean{" +
-                "name='" + name + '\'' +
-                ", duration=" + duration +
-                ", size=" + size +
-                ", address='" + address + '\'' +
-                '}';
-    }
 }

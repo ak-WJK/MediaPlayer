@@ -1,7 +1,10 @@
 package com.atguigu.mediaplayer.fragment;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -41,6 +44,9 @@ public class NetVideoFragment extends BaseFragment {
     private boolean isLoadMore = false;
     private ArrayList<LocalMediaBean> mediaBeens;
     private List<MoveInfo.TrailersBean> datas;
+    private SharedPreferences sp;
+    private SharedPreferences.Editor edit;
+    ;
 
     @Override
     public View initView() {
@@ -48,6 +54,17 @@ public class NetVideoFragment extends BaseFragment {
         lv = (ListView) view.findViewById(R.id.lv);
         tv_nodata = (TextView) view.findViewById(R.id.tv_nodata);
         refresh = (MaterialRefreshLayout) view.findViewById(R.id.refresh);
+
+        sp = context.getSharedPreferences("JsonArr", Context.MODE_APPEND);
+
+        String result = sp.getString("result", "");
+        if (!TextUtils.isEmpty(result)) {
+            processData(result);
+            Log.e("TAG", "数据缓存解析" + result);
+
+        }
+
+
         refresh.setMaterialRefreshListener(new MaterialRefreshListener() {
             //下拉刷新
             @Override
@@ -111,6 +128,9 @@ public class NetVideoFragment extends BaseFragment {
         x.http().get(requestParams, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
+                Log.e("TAG", "加载成功解析" + result);
+                edit = sp.edit();
+                edit.putString("result", result).commit();
 
                 processData(result);
                 refresh.finishRefresh();

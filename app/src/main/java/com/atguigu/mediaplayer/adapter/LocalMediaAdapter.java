@@ -64,7 +64,7 @@ public class LocalMediaAdapter extends BaseAdapter {
         ViewHolder viewHodler;
         if (convertView == null) {
 
-            convertView = View.inflate(context, R.layout.local_video_item, null);
+            convertView = View.inflate(context, R.layout.local_audio_item, null);
             viewHodler = new ViewHolder(convertView);
 
             convertView.setTag(viewHodler);

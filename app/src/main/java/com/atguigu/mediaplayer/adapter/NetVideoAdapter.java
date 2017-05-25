@@ -9,9 +9,7 @@ import android.widget.TextView;
 
 import com.atguigu.mediaplayer.R;
 import com.atguigu.mediaplayer.domain.MoveInfo;
-
-import org.xutils.image.ImageOptions;
-import org.xutils.x;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -26,18 +24,20 @@ public class NetVideoAdapter extends BaseAdapter {
 
     private final Context context;
     private final List<MoveInfo.TrailersBean> datas;
-    private final ImageOptions imageOptions;
+//    private  ImageOptions imageOptions;
+
+
 
     public NetVideoAdapter(Context context, List<MoveInfo.TrailersBean> datas) {
         this.context = context;
         this.datas = datas;
 
-        imageOptions = new ImageOptions.Builder()
-                .setIgnoreGif(false)//是否忽略gif图。false表示不忽略。不写这句，默认是true
-                .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
-                .setFailureDrawableId(R.drawable.video_default)
-                .setLoadingDrawableId(R.drawable.video_default)
-                .build();
+//        imageOptions = new ImageOptions.Builder()
+//                .setIgnoreGif(false)//是否忽略gif图。false表示不忽略。不写这句，默认是true
+//                .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
+//                .setFailureDrawableId(R.drawable.video_default)
+//                .setLoadingDrawableId(R.drawable.video_default)
+//                .build();
 
 
     }
@@ -75,7 +75,15 @@ public class NetVideoAdapter extends BaseAdapter {
         viewHolder.tvName.setText(trailersBean.getMovieName());
         viewHolder.tvSize.setText(trailersBean.getVideoLength() + "秒");
         viewHolder.tvDuration.setText(trailersBean.getVideoTitle());
-        x.image().bind(viewHolder.ivIcon, trailersBean.getCoverImg(), imageOptions);
+//        x.image().bind(viewHolder.ivIcon, trailersBean.getCoverImg(), imageOptions);
+
+        Picasso.with(context)
+                .load(trailersBean.getCoverImg())
+                .placeholder(R.drawable.video_default)
+                .error(R.drawable.video_default)
+                .into(viewHolder.ivIcon);
+
+
 
         return convertView;
 
