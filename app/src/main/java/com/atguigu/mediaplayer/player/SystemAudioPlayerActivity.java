@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -23,13 +24,23 @@ import android.widget.TextView;
 
 import com.atguigu.mediaplayer.IMusicPlayService;
 import com.atguigu.mediaplayer.R;
+import com.atguigu.mediaplayer.domain.Lyric;
 import com.atguigu.mediaplayer.service.MusicPlayerService;
+import com.atguigu.mediaplayer.utils.LyricsUtils;
 import com.atguigu.mediaplayer.utils.Utils;
+import com.atguigu.mediaplayer.view.LyricShowView;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.File;
+import java.util.ArrayList;
 
 public class SystemAudioPlayerActivity extends AppCompatActivity implements View.OnClickListener {
 
 
     private static final int PROGRESS = 1;
+    private static final int SHOW_LYRIC = 2;
     private RelativeLayout llBottemControls;
     private TextView tvAudioTime;
     private SeekBar sbAudioPragressControl;
@@ -44,6 +55,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     private TextView tv_music_name;
     private TextView tv_artist;
     private ServiceConnection conn;
+    private LyricShowView show_lyric;
 
     //传过来的位置
     private int position;
@@ -69,6 +81,24 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
                     handler.sendEmptyMessageDelayed(PROGRESS, 1000);
 
                     break;
+                case SHOW_LYRIC:
+                    try {
+                        int currentPosition = service.getCurrentPosition();
+
+                        //设置歌词的同步
+                        show_lyric.setShowLyric(currentPosition);
+
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
+                    handler.removeMessages(SHOW_LYRIC);
+                    handler.sendEmptyMessage(SHOW_LYRIC);
+//                    handler.sendEmptyMessageDelayed(SHOW_LYRIC, 1000);
+
+                    break;
+
+
             }
 
 
@@ -80,6 +110,10 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         utils = new Utils();
+
+        //        EventBus.getDefault().register(this);
+
+
         findViews();
         musicFrequency();
         getData();
@@ -95,7 +129,7 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
         receiver = new MyBroadcastReceiver();
 
         IntentFilter filter = new IntentFilter(MusicPlayerService.GETDATAS);
-//        filter.addAction(MusicPlayerService.GETDATAS);
+        filter.addAction(MusicPlayerService.GETDATAS);
         registerReceiver(receiver, filter);
 
 
@@ -105,11 +139,12 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            setViewData();
+            setViewData(null);
         }
     }
 
-    private void setViewData() {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    private void setViewData(String str) {
 
         try {
             setButtonImage();
@@ -119,11 +154,38 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
             sbAudioPragressControl.setMax(duration);
 
 
+            //得到歌词路径
+            String audioPath = service.audioPath();
+            //截取.前的内容
+            String substring = audioPath.substring(0, audioPath.lastIndexOf("."));
+
+            File file = new File(substring + ".lrc");
+
+            if (!file.exists()) {
+                file = new File(substring + ".txt");
+            }
+
+            //读取歌词
+            LyricsUtils lyricsUtils = new LyricsUtils();
+            lyricsUtils.readFile(file);
+
+            ArrayList<Lyric> lyrics = lyricsUtils.getLyric();
+//            Log.e("TAG", "lyrics ==========" + lyrics.size());
+            show_lyric.setLyrics(lyrics);
+
+
+            if (lyricsUtils.isLyric()) {
+                handler.sendEmptyMessage(SHOW_LYRIC);
+            }
+
+
         } catch (RemoteException e) {
             e.printStackTrace();
         }
         //发消息更新进度
         handler.sendEmptyMessage(PROGRESS);
+
+//        handler.sendEmptyMessage(SHOW_LYRIC);
 
     }
 
@@ -151,9 +213,11 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
                     try {
 
                         if (notification) {
-                            setViewData();
-                        } else {
+                            Log.e("TAG", " 走这里notification1 " + notification);
 
+                            setViewData(null);
+                        } else {
+                            Log.e("TAG", " 走这里2 " + notification);
                             service.openAudio(position);
                             ibSwitchcontrol.setBackgroundResource(R.drawable.audio_switchcontrol2_select);
                         }
@@ -186,6 +250,10 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
     private void findViews() {
 
         setContentView(R.layout.activity_system_audio_player);
+
+        show_lyric = (LyricShowView) findViewById(R.id.show_lyric);
+
+
         tv_artist = (TextView) findViewById(R.id.tv_artist);
         tv_music_name = (TextView) findViewById(R.id.tv_music_name);
         audio_frequencu = (ImageView) findViewById(R.id.audio_frequencu);
@@ -330,11 +398,20 @@ public class SystemAudioPlayerActivity extends AppCompatActivity implements View
 
         }
 
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
+
+//        EventBus.getDefault().unregister(this);
+
+
     }
 
     public void getData() {
         notification = getIntent().getBooleanExtra("notification", false);
+        Log.e("TAG", "发送过来的数据notification" + notification);
         if (!notification) {
+            Log.e("TAG", "发送过来的数据2notification" + notification);
             position = getIntent().getIntExtra("position", 0);
         }
 

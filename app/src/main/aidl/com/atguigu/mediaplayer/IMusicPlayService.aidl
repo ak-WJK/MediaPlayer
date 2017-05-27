@@ -42,10 +42,6 @@ interface IMusicPlayService {
           */
           void nextMusic();
 
-         /**
-          * 实现循环播放
-          */
-         void forMusic();
 
          /**
           * 得到时长
@@ -87,6 +83,10 @@ interface IMusicPlayService {
 
 
           void setPlaymode(int playmode);
+        /**
+         * 得到歌曲地址
+         */
+        String audioPath();
 
 
 }

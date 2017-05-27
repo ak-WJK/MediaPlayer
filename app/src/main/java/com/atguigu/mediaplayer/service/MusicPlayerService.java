@@ -19,7 +19,7 @@ import android.widget.Toast;
 import com.atguigu.mediaplayer.IMusicPlayService;
 import com.atguigu.mediaplayer.R;
 import com.atguigu.mediaplayer.domain.LocalMediaBean;
-import com.atguigu.mediaplayer.player.SystemVideoPlayerActivity;
+import com.atguigu.mediaplayer.player.SystemAudioPlayerActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -98,11 +98,6 @@ public class MusicPlayerService extends Service {
 
         }
 
-        @Override
-        public void forMusic() throws RemoteException {
-            service.forMusic();
-
-        }
 
         @Override
         public int getDuration() throws RemoteException {
@@ -147,6 +142,11 @@ public class MusicPlayerService extends Service {
         @Override
         public void setPlaymode(int playmode) throws RemoteException {
             service.setPlaymode(playmode);
+        }
+
+        @Override
+        public String audioPath() throws RemoteException {
+            return service.audioPath();
         }
     };
     private MusicPlayerService service;
@@ -224,6 +224,10 @@ public class MusicPlayerService extends Service {
         @Override
         public void onPrepared(MediaPlayer mp) {
             sendChangeBroadcast(GETDATAS);
+
+//            EventBus.getDefault().post("at");
+
+
             playerMusic();
 
         }
@@ -265,7 +269,7 @@ public class MusicPlayerService extends Service {
         mediaPlayer.start();
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        Intent intent = new Intent(this, SystemVideoPlayerActivity.class);
+        Intent intent = new Intent(this, SystemAudioPlayerActivity.class);
         intent.putExtra("notification", true);
         PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notifation = new Notification.Builder(this)
@@ -415,17 +419,17 @@ public class MusicPlayerService extends Service {
 
 
     /**
-     * 实现循环播放
+     * 得到歌曲地址
      */
-    public void forMusic() {
-
+    public String audioPath() {
+        return bean.getAddress();
     }
 
     /**
      * 得到时长
      */
     public int getDuration() {
-        return 0;
+        return mediaPlayer.getDuration();
     }
 
     /**
@@ -440,21 +444,21 @@ public class MusicPlayerService extends Service {
      * 得到音乐名
      */
     public String getMusicName() {
-        return null;
+        return bean.getName();
     }
 
     /**
      * 得到艺术家
      */
     public String getArtistName() {
-        return null;
+        return bean.getArtist();
     }
 
     /**
      * 得到播放音乐的当前进度
      */
     public int getCurrentPosition() {
-        return 0;
+        return mediaPlayer.getCurrentPosition();
     }
 
     public void seekTo(int position) {
@@ -484,7 +488,7 @@ public class MusicPlayerService extends Service {
 
     @Override
     public void onCreate() {
-        Log.e("TAG", "onCreate" + "服务创建了");
+//        Log.e("TAG", "onCreate" + "服务创建了");
         super.onCreate();
 
         sp = getSharedPreferences("atguigu", MODE_PRIVATE);
@@ -522,7 +526,7 @@ public class MusicPlayerService extends Service {
                         String address = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
                         String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
 
-                        Log.e("TAG", "name" + name + "duration" + duration + "size" + size + "addraess" + address + "artis" + artist);
+//                        Log.e("TAG", "name" + name + "duration" + duration + "size" + size + "addraess" + address + "artis" + artist);
 
                         //过滤小文件
                         if (duration > 10 * 1000) {

@@ -66,7 +66,7 @@ public class LocalAudioFragment extends BaseFragment {
 //            bundle.putSerializable("mediaBeens", mediaBeens);
 //            intent.putExtras(bundle);
             intent.putExtra("position", position);
-            intent.putExtra("notification",false);//是否来自状态栏
+            intent.putExtra("notification", false);//是否来自状态栏
             startActivity(intent);
 
 
