@@ -5,12 +5,15 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.atguigu.mediaplayer.fragment.LocalAudioFragment;
 import com.atguigu.mediaplayer.fragment.LocalVideoFragment;
@@ -128,5 +131,29 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    boolean isExit = false;
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (position != 0) {
+                rg_main.check(R.id.rb_local_video);
+                return true;
+            } else if (!isExit) {
+                Toast.makeText(MainActivity.this, "两秒内点击退出", Toast.LENGTH_SHORT).show();
+                isExit = true;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        isExit = false;
+                    }
+                }, 2000);
+                return true;
+
+            }
+        }
+
+
+        return super.onKeyDown(keyCode, event);
+    }
 }

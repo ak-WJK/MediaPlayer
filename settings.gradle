@@ -1,1 +1,2 @@
 include ':app', ':MyPlayerVideo', ':vitamio-sample', ':vitamio'
+include ':speechDemo'

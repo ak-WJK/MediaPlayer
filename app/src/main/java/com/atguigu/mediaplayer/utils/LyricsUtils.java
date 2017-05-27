@@ -85,6 +85,7 @@ public class LyricsUtils {
 
     }
 
+    //解析歌词
     private void analysisLyric(String line) {
         int pos1 = line.indexOf("[");
         int pos2 = line.indexOf("]");
@@ -101,7 +102,7 @@ public class LyricsUtils {
 
             int i = 1;
             String content = line;
-            while (pos1 == 1 && pos2 != -1) {
+            while (pos1 == 0 && pos2 != -1) {
                 content = content.substring(pos2 + 1);
                 pos1 = content.indexOf("[");
                 pos2 = content.indexOf("]");
@@ -138,7 +139,7 @@ public class LyricsUtils {
     }
 
     private long stringToLong(String timeStr) {
-        long result = 1;
+        long result = -1;
 
         try {
             String[] s1 = timeStr.split(":");

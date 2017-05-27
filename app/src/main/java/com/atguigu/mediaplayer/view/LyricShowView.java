@@ -171,7 +171,11 @@ public class LyricShowView extends android.support.v7.widget.AppCompatTextView {
                 if (currentPosition >= lyricsLists.get(tempIndex).getTimePoint()) {
                     //中间高亮显示的哪一句
                     index = tempIndex;
+
+
                 }
+            } else {
+                index = i;
             }
 
         }
@@ -181,13 +185,6 @@ public class LyricShowView extends android.support.v7.widget.AppCompatTextView {
 
 
     }
-
-
-
-
-
-
-
 
 
     public void setLyrics(ArrayList<Lyric> lyrics) {
