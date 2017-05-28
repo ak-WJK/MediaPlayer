@@ -2,6 +2,7 @@ package com.atguigu.mediaplayer;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -40,7 +41,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private ListView lv;
 
 
-    public static final String NET_SEARCH_URL = "http://hot.news.cntv.cn/index.php?controller=list&action=searchList&sort=date&n=20&wd=";
+    public static final String NET_SEARCH_URL = "http://hot.news.cntv.cn/index.php?controller=list&action=searchList&sort=date&n=20";
 
     public String newUrl;
 
@@ -85,23 +86,26 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void toSearch() {
+        //得到动态输入的内容
+        String content = etSousuo.getText().toString().trim();
 
-        String content = etSousuo.getText().toString();
 
-        newUrl = NET_SEARCH_URL + content;
-
-        RequestParams request = new RequestParams(newUrl);
+        RequestParams request = new RequestParams(NET_SEARCH_URL);
+        //解决url后自动拼接&的问题
+        request.addQueryStringParameter("wd", content);
+//        LogUtils.e("TAG", "request" + request);
         x.http().get(request, new Callback.CommonCallback<String>() {
+
             @Override
             public void onSuccess(String result) {
-                Log.e("TAG", "result" + result);
+//                LogUtils.d("TAG", "数据请求成功result===========" + result);
                 analysisJson(result);
 
             }
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
-
+                Log.e("TAG", "数据请求失败" + ex.getMessage());
             }
 
             @Override
@@ -119,15 +123,16 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void analysisJson(String json) {
-        SearchBean searchBean = new Gson().fromJson(json, SearchBean.class);
-        itemsBeen = searchBean.getItems();
-        Log.e("TAG", "itemsBean" + itemsBeen.size());
-        if(itemsBeen!=null && itemsBeen.size()>0) {
-            adapter = new SearchAdapter(SearchActivity.this,itemsBeen);
-            lv.setAdapter(adapter);
+        if (!TextUtils.isEmpty(json)) {
+            SearchBean searchBean = new Gson().fromJson(json, SearchBean.class);
+            itemsBeen = searchBean.getItems();
+//        Log.e("TAG", "itemsBean" + itemsBeen.size());
+            if (itemsBeen != null && itemsBeen.size() > 0) {
+                adapter = new SearchAdapter(SearchActivity.this, itemsBeen);
+                lv.setAdapter(adapter);
 
+            }
         }
-
 
 
     }

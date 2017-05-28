@@ -3,6 +3,8 @@ package com.atguigu.mediaplayer;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,6 +17,7 @@ import android.widget.FrameLayout;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.atguigu.mediaplayer.fragment.ListViewFragment;
 import com.atguigu.mediaplayer.fragment.LocalAudioFragment;
 import com.atguigu.mediaplayer.fragment.LocalVideoFragment;
 import com.atguigu.mediaplayer.fragment.NetAudioFragment;
@@ -22,10 +25,16 @@ import com.atguigu.mediaplayer.fragment.NetVideoFragment;
 
 import java.util.ArrayList;
 
+import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
+
 public class MainActivity extends AppCompatActivity {
     private FrameLayout fl_add_fragment;
     private RadioGroup rg_main;
     private ArrayList<BaseFragment> fragments;
+
+    SensorManager sensorManager;
+
+    JCVideoPlayer.JCAutoFullscreenListener sensorEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +50,42 @@ public class MainActivity extends AppCompatActivity {
         rg_main.check(R.id.rb_local_video);
 
 
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorEventListener = new JCVideoPlayer.JCAutoFullscreenListener();
+
         isGrantExternalRW(this);
 
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Sensor accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(sensorEventListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        sensorManager.unregisterListener(sensorEventListener);
+        JCVideoPlayer.releaseAllVideos();
+
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if (JCVideoPlayer.backPress()) {
+            return;
+
+        }
+        super.onBackPressed();
     }
 
     private void initFragment() {
@@ -51,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         fragments.add(new LocalAudioFragment());
         fragments.add(new NetVideoFragment());
         fragments.add(new NetAudioFragment());
+        fragments.add(new ListViewFragment());
     }
 
 
@@ -73,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.rb_net_audio:
                     position = 3;
+                    break;
+                case R.id.rb_net_listview:
+                    position = 4;
                     break;
             }
             BaseFragment currFragment = fragments.get(position);

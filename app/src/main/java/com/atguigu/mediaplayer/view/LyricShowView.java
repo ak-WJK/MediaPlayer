@@ -17,14 +17,16 @@ import java.util.ArrayList;
  */
 
 public class LyricShowView extends android.support.v7.widget.AppCompatTextView {
-    private int width;
-    private int height;
+    private float width;
+    private float height;
     private Paint paintGreen;
     private Paint paintWhite;
 
     private ArrayList<Lyric> lyricsLists;
     private float textHeight = 100;
-    private int currentPosition;
+    private float currentPosition;
+    private float timePoint;
+    private float sleepTime;
 
 
     public LyricShowView(Context context, @Nullable AttributeSet attrs) {
@@ -78,6 +80,19 @@ public class LyricShowView extends android.support.v7.widget.AppCompatTextView {
 
         //绘制歌词
         if (lyricsLists != null && lyricsLists.size() > 0) {
+
+
+            if (index != lyricsLists.size() - 1) {
+
+                float push = 0;
+                if (sleepTime == 0) {
+                    push = 0;
+                } else {
+                    push = ((currentPosition - timePoint) / sleepTime) * textHeight;
+
+                }
+                canvas.translate(0, -push);
+            }
 
 
             //绘制中间的歌词
@@ -171,6 +186,9 @@ public class LyricShowView extends android.support.v7.widget.AppCompatTextView {
                 if (currentPosition >= lyricsLists.get(tempIndex).getTimePoint()) {
                     //中间高亮显示的哪一句
                     index = tempIndex;
+
+                    timePoint = lyricsLists.get(index).getTimePoint();
+                    sleepTime = lyricsLists.get(index).getSleepTime();
 
 
                 }

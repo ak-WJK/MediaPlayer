@@ -48,6 +48,12 @@
             android:drawableTop="@drawable/net_audio_select"
             android:text="网络音频" />
 
+        <RadioButton
+            android:id="@+id/rb_net_listview"
+            style="@style/rb_style"
+            android:drawableTop="@drawable/net_audio_select"
+            android:text="分类型LiseView" />
+
     </RadioGroup>
 
 
